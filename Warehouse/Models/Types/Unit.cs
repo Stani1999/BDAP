@@ -1,10 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Warehouse.Models.Types
+﻿namespace Warehouse.Models.Types
 {
-    class Unit
+    /// <summary>
+    /// Specifies the standard units of measurement for product quantities.
+    /// </summary>
+    public enum Unit
     {
+        Pack,
+        Piece,
+        Kg,
+        Liter
     }
 }

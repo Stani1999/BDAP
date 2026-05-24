@@ -1,10 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using MongoDB.Driver;
 
 namespace Warehouse.Services.Infrastructure
 {
-    class IMongoService
+    /// <summary>
+    /// Provides an abstraction layer for database access.
+    /// Exposes a generic method to retrieve MongoDB collections.
+    /// </summary>
+    public interface IMongoService
     {
+        IMongoCollection<T> GetCollection<T>(string name);
     }
 }

@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Warehouse.Models
+﻿namespace Warehouse.Models
 {
-    class ProductTag
+    /// <summary>
+    /// Represents the predefined list of tags used for categorizing and filtering products.
+    /// </summary>
+    public enum ProductTag
     {
+        NaturalSoap,
+        WhiteOnly,
+        Premium
     }
 }

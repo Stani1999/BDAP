@@ -4,11 +4,11 @@ using Warehouse.ViewModels;
 namespace Warehouse.Views
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for ProductDetailsWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class ProductDetailsWindow : Window
     {
-        public MainWindow(MainViewModel viewModel)
+        public ProductDetailsWindow(ProductDetailsViewModel viewModel)
         {
             InitializeComponent();
             DataContext = viewModel;

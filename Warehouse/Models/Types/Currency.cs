@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Warehouse.Models.Types
+﻿namespace Warehouse.Models.Types
 {
-    class Currency
+    /// <summary>
+    /// Defines the supported currencies for monetary values within the system.
+    /// </summary>
+    public enum Currency
     {
+        PLN,
+        EUR,
+        USD
     }
 }
