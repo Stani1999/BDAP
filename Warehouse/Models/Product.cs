@@ -14,6 +14,7 @@ namespace Warehouse.Models
         [BsonId]
         public ObjectId Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        [BsonRepresentation(BsonType.String)]
         public string CategoryId { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public Price Price { get; set; } = new();

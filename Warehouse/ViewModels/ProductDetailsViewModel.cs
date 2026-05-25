@@ -3,7 +3,9 @@ using CommunityToolkit.Mvvm.Input;
 using FluentValidation;
 using Microsoft.Win32;
 using System;
-using System.Collections.ObjectModel;
+using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Warehouse.Models;
@@ -11,13 +13,14 @@ using Warehouse.Services.Application;
 
 namespace Warehouse.ViewModels
 {
-
-    public partial class ProductDetailsViewModel : ObservableObject
+    public partial class ProductDetailsViewModel : ObservableObject, INotifyDataErrorInfo
     {
         private readonly ProductService _productService;
         private readonly InventoryService _inventoryService;
         private readonly CategoryService _categoryService;
         private readonly IValidator<Product> _productValidator;
+
+        public CategorySelectionViewModel CategorySelector { get; }
 
         [ObservableProperty]
         private Product _currentProduct;
@@ -26,81 +29,70 @@ namespace Warehouse.ViewModels
         private bool _isNewProduct;
 
         [ObservableProperty]
-        private string _errorMessage = string.Empty;
+        private string _productName = string.Empty;
 
         [ObservableProperty]
-        private ObservableCollection<string> _groups = new();
+        private int _productQuantity;
 
         [ObservableProperty]
-        private ObservableCollection<Category> _categories = new();
+        private decimal _productPriceAmount;
 
         [ObservableProperty]
-        private string _selectedGroup = string.Empty;
+        private string _productImagePath = string.Empty;
 
         [ObservableProperty]
-        private Category? _selectedCategory;
+        private string _productLabelImagePath = string.Empty;
+
+        private readonly Dictionary<string, List<string>> _errors = new();
+
+        public bool HasErrors => _errors.Any();
+        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
 
         public ProductDetailsViewModel(
             ProductService productService,
             InventoryService inventoryService,
             CategoryService categoryService,
+            CategorySelectionViewModel categorySelector,
             IValidator<Product> productValidator)
         {
             _productService = productService;
             _inventoryService = inventoryService;
             _categoryService = categoryService;
+            CategorySelector = categorySelector;
             _productValidator = productValidator;
 
             CurrentProduct = new Product();
             IsNewProduct = true;
         }
 
-        public void SetProduct(Product product)
+        public async Task InitializeAsync()
+        {
+            await CategorySelector.InitializeAsync();
+        }
+
+        public async Task SetProductAsync(Product product)
         {
             CurrentProduct = product;
             IsNewProduct = false;
-            _ = LoadInitialDataAsync();
-        }
 
-        public async Task InitializeAsync()
-        {
-            var groups = await _categoryService.GetAllGroupsAsync();
-            Groups = new ObservableCollection<string>(groups);
-        }
+            ProductName = product.Name;
+            ProductQuantity = product.Quantity;
+            ProductPriceAmount = product.Price.Amount;
+            ProductImagePath = product.ImagePath;
+            ProductLabelImagePath = product.LabelImagePath;
 
-        private async Task LoadInitialDataAsync()
-        {
             await InitializeAsync();
-            if (!string.IsNullOrEmpty(CurrentProduct.CategoryId))
+
+            if (!string.IsNullOrEmpty(product.CategoryId))
             {
-                var cat = await _categoryService.GetCategoryByIdAsync(CurrentProduct.CategoryId);
+                var cat = await _categoryService.GetCategoryByIdAsync(product.CategoryId.ToString());
                 if (cat != null)
                 {
-                    SelectedGroup = cat.Group;
-                    await LoadCategoriesForGroupAsync(cat.Group);
-                    SelectedCategory = Categories.FirstOrDefault(c => c.Id == cat.Id);
+                    CategorySelector.SelectedGroup = cat.Group;
+                    await CategorySelector.LoadCategoriesForGroupAsync(cat.Group);
+                    CategorySelector.SelectedCategory = CategorySelector.Categories.FirstOrDefault(c => c.Id == cat.Id);
                 }
             }
-        }
-
-        partial void OnSelectedGroupChanged(string value)
-        {
-            _ = LoadCategoriesForGroupAsync(value);
-        }
-
-        partial void OnSelectedCategoryChanged(Category? value)
-        {
-            if (value != null)
-            {
-                CurrentProduct.CategoryId = value.Id;
-            }
-        }
-
-        private async Task LoadCategoriesForGroupAsync(string group)
-        {
-            if (string.IsNullOrEmpty(group)) return;
-            var cats = await _categoryService.GetCategoriesByGroupAsync(group);
-            Categories = new ObservableCollection<Category>(cats);
         }
 
         [RelayCommand]
@@ -109,8 +101,7 @@ namespace Warehouse.ViewModels
             var dialog = new OpenFileDialog { Filter = "Image Files|*.jpg;*.jpeg;*.png" };
             if (dialog.ShowDialog() == true)
             {
-                CurrentProduct.ImagePath = dialog.FileName;
-                OnPropertyChanged(nameof(CurrentProduct));
+                ProductImagePath = dialog.FileName;
             }
         }
 
@@ -120,22 +111,42 @@ namespace Warehouse.ViewModels
             var dialog = new OpenFileDialog { Filter = "Image Files|*.jpg;*.jpeg;*.png" };
             if (dialog.ShowDialog() == true)
             {
-                CurrentProduct.LabelImagePath = dialog.FileName;
-                OnPropertyChanged(nameof(CurrentProduct));
+                ProductLabelImagePath = dialog.FileName;
             }
         }
 
         [RelayCommand]
         private async Task SaveAsync()
         {
+            CurrentProduct.Name = ProductName;
+            CurrentProduct.Quantity = ProductQuantity;
+            CurrentProduct.Price.Amount = ProductPriceAmount;
+            CurrentProduct.ImagePath = ProductImagePath;
+            CurrentProduct.LabelImagePath = ProductLabelImagePath;
+
+            if (CategorySelector.SelectedCategory != null)
+            {
+                CurrentProduct.CategoryId = CategorySelector.SelectedCategory.Id;
+            }
+
+            ClearErrors();
+
             var validationResult = await _productValidator.ValidateAsync(CurrentProduct);
             if (!validationResult.IsValid)
             {
-                ErrorMessage = string.Join(Environment.NewLine, validationResult.Errors);
+                foreach (var error in validationResult.Errors)
+                {
+                    string propName = error.PropertyName switch
+                    {
+                        "Name" => nameof(ProductName),
+                        "Quantity" => nameof(ProductQuantity),
+                        "Price.Amount" => nameof(ProductPriceAmount),
+                        _ => error.PropertyName
+                    };
+                    AddError(propName, error.ErrorMessage);
+                }
                 return;
             }
-
-            ErrorMessage = string.Empty;
 
             if (IsNewProduct)
             {
@@ -170,6 +181,32 @@ namespace Warehouse.ViewModels
             if (!IsNewProduct)
             {
                 await _productService.DeleteProductAsync(CurrentProduct.Id);
+            }
+        }
+
+        public IEnumerable GetErrors(string? propertyName)
+        {
+            if (string.IsNullOrEmpty(propertyName) || !_errors.ContainsKey(propertyName))
+                return null!;
+            return _errors[propertyName];
+        }
+
+        private void AddError(string propertyName, string errorMessage)
+        {
+            if (!_errors.ContainsKey(propertyName))
+                _errors[propertyName] = new List<string>();
+
+            _errors[propertyName].Add(errorMessage);
+            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+        }
+
+        private void ClearErrors()
+        {
+            var propertyNames = _errors.Keys.ToList();
+            _errors.Clear();
+            foreach (var propertyName in propertyNames)
+            {
+                ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
             }
         }
     }
