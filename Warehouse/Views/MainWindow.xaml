@@ -17,17 +17,24 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <uc:SearchBarControl Grid.Column="0" />
+            <StackPanel Grid.Column="0">
+                <uc:SearchBarControl />
+                <StackPanel Orientation="Horizontal" Margin="10,5,10,0">
+                    <TextBlock Text="Filtruj - Grupa: " VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,5,0" />
+                    <uc:GroupSelectionControl DataContext="{Binding CategorySelector}" Width="200" Margin="0,0,20,0" />
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0">
+                    <TextBlock Text="Kategoria: " VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,5,0" />
+                    <uc:CategorySelectionControl DataContext="{Binding CategorySelector}" Width="200" />
+                </StackPanel>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0" VerticalAlignment="Top">
                 <Button Content="Dodaj Produkt" Padding="15,10" FontWeight="Bold" Click="AddProduct_Click" />
                 <Button Content="Raporty" Padding="15,10" Margin="10,0,0,0" />
             </StackPanel>
         </Grid>
 
         <uc:ProductListControl Grid.Row="1" />
-
         <uc:PaginationControl Grid.Row="2" />
-
     </Grid>
 </Window>

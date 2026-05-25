@@ -7,14 +7,12 @@ using Warehouse.Services.Application;
 
 namespace Warehouse.ViewModels
 {
-    /// <summary>
-    /// Handles the presentation logic for the main dashboard.
-    /// Manages search queries, barcodes scan events, loading states, and data pagination.
-    /// </summary>
     public partial class MainViewModel : ObservableObject
     {
         private readonly ProductService _productService;
         private readonly ReportService _reportService;
+
+        public CategorySelectionViewModel CategorySelector { get; }
 
         [ObservableProperty]
         private string _searchQuery = string.Empty;
@@ -33,10 +31,13 @@ namespace Warehouse.ViewModels
 
         private const int PageSize = 50;
 
-        public MainViewModel(ProductService productService, ReportService reportService)
+        public MainViewModel(ProductService productService, ReportService reportService, CategorySelectionViewModel categorySelector)
         {
             _productService = productService;
             _reportService = reportService;
+            CategorySelector = categorySelector;
+
+            _ = CategorySelector.InitializeAsync();
         }
 
         partial void OnSearchQueryChanged(string value)

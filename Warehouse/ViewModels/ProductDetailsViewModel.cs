@@ -5,17 +5,13 @@ using Microsoft.Win32;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Warehouse.Models;
 using Warehouse.Services.Application;
 
 namespace Warehouse.ViewModels
 {
-    /// <summary>
-    /// Manages the presentation logic for creating, updating, and deleting products.
-    /// Integrates asynchronous FluentValidation and logs initial ledger transactions.
-    /// </summary>
+
     public partial class ProductDetailsViewModel : ObservableObject
     {
         private readonly ProductService _productService;
@@ -42,7 +38,7 @@ namespace Warehouse.ViewModels
         private string _selectedGroup = string.Empty;
 
         [ObservableProperty]
-        private Category _selectedCategory;
+        private Category? _selectedCategory;
 
         public ProductDetailsViewModel(
             ProductService productService,
@@ -92,7 +88,7 @@ namespace Warehouse.ViewModels
             _ = LoadCategoriesForGroupAsync(value);
         }
 
-        partial void OnSelectedCategoryChanged(Category value)
+        partial void OnSelectedCategoryChanged(Category? value)
         {
             if (value != null)
             {
