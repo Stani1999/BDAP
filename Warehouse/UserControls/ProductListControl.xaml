@@ -3,13 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Grid Margin="10">
         <DataGrid ItemsSource="{Binding Products}" 
-                  SelectedItem="{Binding SelectedProduct}"
-                  AutoGenerateColumns="False" 
-                  IsReadOnly="True"
-                  SelectionMode="Single"
-                  VirtualizingStackPanel.IsVirtualizing="True"
-                  VirtualizingStackPanel.VirtualizationMode="Recycling"
-                  EnableRowVirtualization="True">
+              SelectedItem="{Binding SelectedProduct}"
+              AutoGenerateColumns="False" 
+              IsReadOnly="True"
+              SelectionMode="Single"
+              VirtualizingStackPanel.IsVirtualizing="True"
+              VirtualizingStackPanel.VirtualizationMode="Recycling"
+              EnableRowVirtualization="True"
+              MouseDoubleClick="DataGrid_MouseDoubleClick">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Kod Kreskowy (ID)" Binding="{Binding Id}" Width="200" />
                 <DataGridTextColumn Header="Nazwa Produktu" Binding="{Binding Name}" Width="*" />

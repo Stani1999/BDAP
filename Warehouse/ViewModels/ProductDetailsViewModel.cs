@@ -1,7 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FluentValidation;
+using Microsoft.Win32;
 using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Warehouse.Models;
 using Warehouse.Services.Application;
@@ -16,6 +20,7 @@ namespace Warehouse.ViewModels
     {
         private readonly ProductService _productService;
         private readonly InventoryService _inventoryService;
+        private readonly CategoryService _categoryService;
         private readonly IValidator<Product> _productValidator;
 
         [ObservableProperty]
@@ -27,25 +32,100 @@ namespace Warehouse.ViewModels
         [ObservableProperty]
         private string _errorMessage = string.Empty;
 
+        [ObservableProperty]
+        private ObservableCollection<string> _groups = new();
+
+        [ObservableProperty]
+        private ObservableCollection<Category> _categories = new();
+
+        [ObservableProperty]
+        private string _selectedGroup = string.Empty;
+
+        [ObservableProperty]
+        private Category _selectedCategory;
+
         public ProductDetailsViewModel(
             ProductService productService,
             InventoryService inventoryService,
-            IValidator<Product> productValidator,
-            Product? product = null)
+            CategoryService categoryService,
+            IValidator<Product> productValidator)
         {
             _productService = productService;
             _inventoryService = inventoryService;
+            _categoryService = categoryService;
             _productValidator = productValidator;
 
-            if (product == null)
+            CurrentProduct = new Product();
+            IsNewProduct = true;
+        }
+
+        public void SetProduct(Product product)
+        {
+            CurrentProduct = product;
+            IsNewProduct = false;
+            _ = LoadInitialDataAsync();
+        }
+
+        public async Task InitializeAsync()
+        {
+            var groups = await _categoryService.GetAllGroupsAsync();
+            Groups = new ObservableCollection<string>(groups);
+        }
+
+        private async Task LoadInitialDataAsync()
+        {
+            await InitializeAsync();
+            if (!string.IsNullOrEmpty(CurrentProduct.CategoryId))
             {
-                CurrentProduct = new Product();
-                IsNewProduct = true;
+                var cat = await _categoryService.GetCategoryByIdAsync(CurrentProduct.CategoryId);
+                if (cat != null)
+                {
+                    SelectedGroup = cat.Group;
+                    await LoadCategoriesForGroupAsync(cat.Group);
+                    SelectedCategory = Categories.FirstOrDefault(c => c.Id == cat.Id);
+                }
             }
-            else
+        }
+
+        partial void OnSelectedGroupChanged(string value)
+        {
+            _ = LoadCategoriesForGroupAsync(value);
+        }
+
+        partial void OnSelectedCategoryChanged(Category value)
+        {
+            if (value != null)
             {
-                CurrentProduct = product;
-                IsNewProduct = false;
+                CurrentProduct.CategoryId = value.Id;
+            }
+        }
+
+        private async Task LoadCategoriesForGroupAsync(string group)
+        {
+            if (string.IsNullOrEmpty(group)) return;
+            var cats = await _categoryService.GetCategoriesByGroupAsync(group);
+            Categories = new ObservableCollection<Category>(cats);
+        }
+
+        [RelayCommand]
+        private void SelectImage()
+        {
+            var dialog = new OpenFileDialog { Filter = "Image Files|*.jpg;*.jpeg;*.png" };
+            if (dialog.ShowDialog() == true)
+            {
+                CurrentProduct.ImagePath = dialog.FileName;
+                OnPropertyChanged(nameof(CurrentProduct));
+            }
+        }
+
+        [RelayCommand]
+        private void SelectLabelImage()
+        {
+            var dialog = new OpenFileDialog { Filter = "Image Files|*.jpg;*.jpeg;*.png" };
+            if (dialog.ShowDialog() == true)
+            {
+                CurrentProduct.LabelImagePath = dialog.FileName;
+                OnPropertyChanged(nameof(CurrentProduct));
             }
         }
 

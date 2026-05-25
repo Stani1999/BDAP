@@ -25,6 +25,7 @@
   * `MongoDB.Driver`
   * `CommunityToolkit.Mvvm`
   * `Microsoft.Extensions.DependencyInjection`
+  * `FluentValidation.DependencyInjectionExtensions`
 
 ### I.3. In case of error: `"This solution contains packages with vulnerabilities..."
 
@@ -50,12 +51,13 @@ E.g. Dependencies >  Packages > MongoDB.Driver > `SharpCompress` (Warning icon)
 
 ### II.2. Installed Packages and Versions
 
-**Package Name**                            | **Version**
-:---                                        | :---
-CommunityToolkit.Mvvm                       | 8.4.2
-Microsoft.Extensions.DependencyInjection    | 10.0.8
-MongoDB.Driver                              | 3.8.1
-SharpCompress                               | 0.48.1
+**Package Name**                                | **Version**
+:---                                            | :---
+CommunityToolkit.Mvvm                           | 8.4.2
+Microsoft.Extensions.DependencyInjection        | 10.0.8
+MongoDB.Driver                                  | 3.8.1
+SharpCompress                                   | 0.48.1
+FluentValidation.DependencyInjectionExtensions  | 12.1.1
 
 ### II.3. Big Data
 
@@ -247,3 +249,34 @@ The User Interface strictly follows a modular, component-based design. Instead o
 * **Price / Currency:** Text input and dropdown (Default: PLN)
 * **Quantity:** Initial quantity injection (creates an automatic "IN" transaction upon creation)
 * **Tags:** Dynamic CheckBoxes for selecting applicable tags based on the product type
+
+## V. Building of Database (MongoDB)
+
+### V.1. Create the `WarehouseDB` 
+
+```javascript
+use WarehouseDB
+```
+
+### V.2. Create Collections
+
+```javascript
+db.createCollection("Category")
+db.createCollection("Product")
+```
+
+### V.3. Create Category
+
+```javascript
+db.Category.insertMany([
+  { Id: "sau_01", Group: "Olej, przyprawy i sosy", Name: "Olej, ocet i sól" },
+  { Id: "sau_02", Group: "Olej, przyprawy i sosy", Name: "Przyprawy" },
+  { Id: "sau_03", Group: "Olej, przyprawy i sosy", Name: "Majonez, keczup i musztarda" },
+  { Id: "sau_04", Group: "Olej, przyprawy i sosy", Name: "Inne sosy" },
+
+  { Id: "dri_01", Group: "Woda i napoje bezalkoholowe", Name: "Woda" },
+  { Id: "dri_02", Group: "Woda i napoje bezalkoholowe", Name: "Izotoniczny i energetyczny" },
+  ...
+])
+```
+

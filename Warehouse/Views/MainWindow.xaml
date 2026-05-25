@@ -20,7 +20,7 @@
             <uc:SearchBarControl Grid.Column="0" />
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="10,0,0,0">
-                <Button Content="Dodaj Produkt" Padding="15,10" FontWeight="Bold" />
+                <Button Content="Dodaj Produkt" Padding="15,10" FontWeight="Bold" Click="AddProduct_Click" />
                 <Button Content="Raporty" Padding="15,10" Margin="10,0,0,0" />
             </StackPanel>
         </Grid>

@@ -39,6 +39,11 @@ namespace Warehouse.ViewModels
             _reportService = reportService;
         }
 
+        partial void OnSearchQueryChanged(string value)
+        {
+            _ = SearchAsync();
+        }
+
         [RelayCommand]
         private async Task SearchAsync()
         {

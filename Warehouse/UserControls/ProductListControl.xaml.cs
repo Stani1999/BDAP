@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using Microsoft.Extensions.DependencyInjection;
+using Warehouse.ViewModels;
+using Warehouse.Views;
 
 namespace Warehouse.UserControls
 {
@@ -21,6 +15,19 @@ namespace Warehouse.UserControls
         public ProductListControl()
         {
             InitializeComponent();
+        }
+
+        private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is MainViewModel mainViewModel && mainViewModel.SelectedProduct != null)
+            {
+                var window = App.Current.Services.GetRequiredService<ProductDetailsWindow>();
+                if (window.DataContext is ProductDetailsViewModel vm)
+                {
+                    vm.SetProduct(mainViewModel.SelectedProduct);
+                }
+                window.ShowDialog();
+            }
         }
     }
 }
