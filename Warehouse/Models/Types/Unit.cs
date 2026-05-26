@@ -5,9 +5,11 @@
     /// </summary>
     public enum Unit
     {
-        Pack,
-        Piece,
+        Opakowanie,
+        Sztuka,
         Kg,
-        Liter
+        g,
+        L,
+        ml,
     }
 }

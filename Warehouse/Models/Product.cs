@@ -15,8 +15,8 @@ namespace Warehouse.Models
         public string Description { get; set; } = string.Empty;
         public string CategoryId { get; set; } = string.Empty;
         public int Quantity { get; set; }
-        public Price Price { get; set; } = new();
-        public Unit Unit { get; set; }
+        public Price Price { get; set; } = new(); 
+        public Measurand Measurand { get; set; } = new();
         public byte[]? ImageData { get; set; }
         public byte[]? LabelImageData { get; set; }
         public string ExtractedLabelText { get; set; } = string.Empty;

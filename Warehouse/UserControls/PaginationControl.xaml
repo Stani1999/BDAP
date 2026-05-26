@@ -6,6 +6,9 @@
         <TextBlock Text="Ilość na stronę:" VerticalAlignment="Center" FontSize="14" Margin="0,0,10,0"/>
         <ComboBox ItemsSource="{Binding PageSizes}" SelectedItem="{Binding PageSize}" Width="60" Margin="0,0,30,0" Padding="5" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
 
+        <Button Content="Odśwież" Command="{Binding RefreshCommand}" Padding="15,5" Margin="0,0,10,0" />
+        <Button Content="Wyczyść" Command="{Binding ClearCommand}" Padding="15,5" Margin="0,0,30,0" />
+
         <Button Content="&lt; Poprzednia" 
                 Command="{Binding PreviousPageCommand}" 
                 Padding="15,5" 

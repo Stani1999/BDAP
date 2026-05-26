@@ -18,10 +18,12 @@
                   CanUserSortColumns="True"
                   MouseDoubleClick="DataGrid_MouseDoubleClick">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Kod" Binding="{Binding Barcode}" Width="150" />
-                <DataGridTextColumn Header="Nazwa Produktu" Binding="{Binding Name}" Width="200" />
+                <DataGridTextColumn Header="Kod" Binding="{Binding Barcode}" Width="100" />
+                <DataGridTextColumn Header="Nazwa" Binding="{Binding Name}" Width="150" />
+                <DataGridTextColumn Header="Miara" Binding="{Binding Measurand.Amount}" Width="80" />
+                <DataGridTextColumn Header="Jednostka" Binding="{Binding Measurand.Unit}" Width="80" />
                 <DataGridTextColumn Header="Opis" Binding="{Binding Description}" Width="*" />
-                <DataGridTextColumn Header="Ilość" Binding="{Binding Quantity}" Width="70" />
+                <DataGridTextColumn Header="Stan" Binding="{Binding Quantity}" Width="70" />
                 <DataGridTextColumn Header="Cena" Binding="{Binding Price.Amount}" Width="70" />
                 <DataGridTextColumn Header="Waluta" Binding="{Binding Price.Currency}" Width="70" />
             </DataGrid.Columns>

@@ -23,6 +23,8 @@ namespace Warehouse.UserControls
                     await vm.SetProductAsync(mainViewModel.SelectedProduct);
                 }
                 window.ShowDialog();
+
+                _ = mainViewModel.LoadPageAsync();
             }
         }
     }

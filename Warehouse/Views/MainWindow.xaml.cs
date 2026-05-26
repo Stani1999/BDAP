@@ -20,6 +20,11 @@ namespace Warehouse.Views
                 _ = vm.InitializeAsync();
             }
             window.ShowDialog();
+
+            if (DataContext is MainViewModel mainVm)
+            {
+                _ = mainVm.LoadPageAsync();
+            }
         }
 
         private void OpenReports_Click(object sender, RoutedEventArgs e)
@@ -30,6 +35,11 @@ namespace Warehouse.Views
                 _ = vm.InitializeAsync();
             }
             window.ShowDialog();
+        }
+
+        private void PaginationControl_Loaded(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

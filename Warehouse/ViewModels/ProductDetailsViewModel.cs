@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -53,6 +54,12 @@ namespace Warehouse.ViewModels
         private Currency _selectedCurrency;
 
         [ObservableProperty]
+        private decimal _measurandAmount;
+
+        [ObservableProperty]
+        private Unit _selectedUnit;
+
+        [ObservableProperty]
         private BitmapImage? _productImageSource;
 
         [ObservableProperty]
@@ -60,6 +67,12 @@ namespace Warehouse.ViewModels
 
         [ObservableProperty]
         private string _extractedText = string.Empty;
+
+        [ObservableProperty]
+        private ObservableCollection<Currency> _currencies = new();
+
+        [ObservableProperty]
+        private ObservableCollection<Unit> _units = new();
 
         private byte[]? _rawImageData;
         private byte[]? _rawLabelImageData;
@@ -90,6 +103,8 @@ namespace Warehouse.ViewModels
 
             CurrentProduct = new Product();
             IsNewProduct = true;
+            Currencies = new ObservableCollection<Currency>(Enum.GetValues(typeof(Currency)).Cast<Currency>());
+            Units = new ObservableCollection<Unit>(Enum.GetValues(typeof(Unit)).Cast<Unit>());
         }
 
         public async Task InitializeAsync()
@@ -109,8 +124,11 @@ namespace Warehouse.ViewModels
             ProductQuantity = product.Quantity;
             ProductPriceAmount = product.Price.Amount;
             SelectedCurrency = product.Price.Currency;
-            ExtractedText = product.ExtractedLabelText;
 
+            MeasurandAmount = product.Measurand.Amount;
+            SelectedUnit = product.Measurand.Unit;
+
+            ExtractedText = product.ExtractedLabelText;
             _rawImageData = product.ImageData;
             _rawLabelImageData = product.LabelImageData;
 
@@ -137,7 +155,6 @@ namespace Warehouse.ViewModels
             var image = new BitmapImage();
             using var stream = new MemoryStream(array);
             image.BeginInit();
-            image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
             image.CacheOption = BitmapCacheOption.OnLoad;
             image.StreamSource = stream;
             image.EndInit();
@@ -174,10 +191,6 @@ namespace Warehouse.ViewModels
             {
                 ExtractedText = _ocrService.ExtractTextFromImage(_rawLabelImageData);
             }
-            else
-            {
-                ExtractedText = "Brak załadowanego zdjęcia etykiety.";
-            }
         }
 
         [RelayCommand]
@@ -185,13 +198,11 @@ namespace Warehouse.ViewModels
         {
             if (!string.IsNullOrWhiteSpace(ExtractedText))
             {
-                ProductDescription = "Trwa tłumaczenie...";
                 ProductDescription = await _translationService.TranslateSpanishToPolishAsync(ExtractedText);
             }
         }
 
-        [RelayCommand]
-        private async Task SaveAsync()
+        private async Task<bool> SaveCoreAsync()
         {
             var quantityDifference = ProductQuantity - CurrentProduct.Quantity;
 
@@ -201,6 +212,10 @@ namespace Warehouse.ViewModels
             CurrentProduct.Quantity = ProductQuantity;
             CurrentProduct.Price.Amount = ProductPriceAmount;
             CurrentProduct.Price.Currency = SelectedCurrency;
+
+            CurrentProduct.Measurand.Amount = MeasurandAmount;
+            CurrentProduct.Measurand.Unit = SelectedUnit;
+
             CurrentProduct.ImageData = _rawImageData;
             CurrentProduct.LabelImageData = _rawLabelImageData;
             CurrentProduct.ExtractedLabelText = ExtractedText;
@@ -209,103 +224,69 @@ namespace Warehouse.ViewModels
             {
                 CurrentProduct.CategoryId = CategorySelector.SelectedCategory.Id;
             }
-            else
-            {
-                CurrentProduct.CategoryId = string.Empty;
-            }
-
-            ClearErrors();
-            CategorySelector.ClearAllErrors();
-
-            bool hasDropdownErrors = false;
-            if (string.IsNullOrWhiteSpace(CategorySelector.SelectedGroup) || CategorySelector.SelectedGroup == "-- Wybierz Grupę --" || CategorySelector.SelectedGroup == "-- Wszystkie --")
-            {
-                CategorySelector.AddError(nameof(CategorySelector.SelectedGroup), "Grupa jest wymagana.");
-                hasDropdownErrors = true;
-            }
-            if (CategorySelector.SelectedCategory == null)
-            {
-                CategorySelector.AddError(nameof(CategorySelector.SelectedCategory), "Kategoria jest wymagana.");
-                hasDropdownErrors = true;
-            }
 
             var validationResult = await _productValidator.ValidateAsync(CurrentProduct);
-            if (!validationResult.IsValid || hasDropdownErrors)
-            {
-                foreach (var error in validationResult.Errors)
-                {
-                    string propName = error.PropertyName switch
-                    {
-                        "Barcode" => nameof(ProductBarcode),
-                        "Name" => nameof(ProductName),
-                        "Quantity" => nameof(ProductQuantity),
-                        "Price.Amount" => nameof(ProductPriceAmount),
-                        _ => error.PropertyName
-                    };
-                    AddError(propName, error.ErrorMessage);
-                }
-                return;
-            }
+            if (!validationResult.IsValid) return false;
 
             if (IsNewProduct)
             {
                 CurrentProduct.Quantity = 0;
                 await _productService.AddProductAsync(CurrentProduct);
-
                 if (quantityDifference != 0)
                 {
-                    var transaction = new InventoryTransaction
-                    {
-                        ProductId = CurrentProduct.Id,
-                        TransactionType = quantityDifference > 0 ? "IN" : "OUT",
-                        QuantityChanged = quantityDifference,
-                        Timestamp = DateTime.UtcNow,
-                        UserId = "system"
-                    };
-                    await _inventoryService.LogTransactionAsync(transaction);
+                    await _inventoryService.LogTransactionAsync(new InventoryTransaction { ProductId = CurrentProduct.Id, TransactionType = quantityDifference > 0 ? "IN" : "OUT", QuantityChanged = quantityDifference, Timestamp = DateTime.UtcNow, UserId = "system" });
                 }
                 IsNewProduct = false;
             }
             else
             {
                 await _productService.UpdateProductAsync(CurrentProduct);
-
                 if (quantityDifference != 0)
                 {
-                    var transaction = new InventoryTransaction
-                    {
-                        ProductId = CurrentProduct.Id,
-                        TransactionType = quantityDifference > 0 ? "IN" : "OUT",
-                        QuantityChanged = quantityDifference,
-                        Timestamp = DateTime.UtcNow,
-                        UserId = "system_manual_edit"
-                    };
-                    await _inventoryService.LogTransactionAsync(transaction);
+                    await _inventoryService.LogTransactionAsync(new InventoryTransaction { ProductId = CurrentProduct.Id, TransactionType = quantityDifference > 0 ? "IN" : "OUT", QuantityChanged = quantityDifference, Timestamp = DateTime.UtcNow, UserId = "system_edit" });
                 }
+            }
+            return true;
+        }
+
+        [RelayCommand]
+        private async Task SaveAsync() => await SaveCoreAsync();
+
+        [RelayCommand]
+        private async Task SaveAndNextAsync()
+        {
+            if (await SaveCoreAsync())
+            {
+                CurrentProduct = new Product();
+                IsNewProduct = true;
+                ProductBarcode = string.Empty;
+                ProductName = string.Empty;
+                ProductDescription = string.Empty;
+                ProductQuantity = 0;
+                ProductPriceAmount = 0m;
+                MeasurandAmount = 0m;
+                ExtractedText = string.Empty;
+                _rawImageData = null;
+                _rawLabelImageData = null;
+                ProductImageSource = null;
+                ProductLabelImageSource = null;
+                CategorySelector.SelectedGroup = "-- Wszystkie --";
+                CategorySelector.SelectedCategory = null;
+                ClearErrors();
             }
         }
 
         [RelayCommand]
         private async Task DeleteAsync()
         {
-            if (!IsNewProduct)
-            {
-                await _productService.DeleteProductAsync(CurrentProduct.Id);
-            }
+            if (!IsNewProduct) await _productService.DeleteProductAsync(CurrentProduct.Id);
         }
 
-        public IEnumerable GetErrors(string? propertyName)
-        {
-            if (string.IsNullOrEmpty(propertyName) || !_errors.ContainsKey(propertyName))
-                return null!;
-            return _errors[propertyName];
-        }
+        public IEnumerable GetErrors(string? propertyName) => (!_errors.ContainsKey(propertyName ?? "")) ? null! : _errors[propertyName ?? ""];
 
         private void AddError(string propertyName, string errorMessage)
         {
-            if (!_errors.ContainsKey(propertyName))
-                _errors[propertyName] = new List<string>();
-
+            if (!_errors.ContainsKey(propertyName)) _errors[propertyName] = new List<string>();
             _errors[propertyName].Add(errorMessage);
             ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
         }
@@ -314,10 +295,7 @@ namespace Warehouse.ViewModels
         {
             var propertyNames = _errors.Keys.ToList();
             _errors.Clear();
-            foreach (var propertyName in propertyNames)
-            {
-                ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
-            }
+            foreach (var propertyName in propertyNames) ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
         }
     }
 }

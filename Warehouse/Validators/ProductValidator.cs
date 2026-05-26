@@ -9,7 +9,7 @@ namespace Warehouse.Validators
         {
             RuleFor(x => x.Name)
                 .NotEmpty()
-                .MaximumLength(200);
+                .MaximumLength(50);
 
             RuleFor(x => x.Barcode)
                 .NotEmpty()
@@ -25,11 +25,14 @@ namespace Warehouse.Validators
             RuleFor(x => x.Price)
                 .NotNull();
 
-            When(x => x.Price != null, () =>
-            {
-                RuleFor(x => x.Price.Amount)
-                    .GreaterThan(0);
-            });
+            RuleFor(x => x.Price.Amount)
+                .GreaterThanOrEqualTo(0);
+
+            RuleFor(x => x.Measurand)
+                .NotNull();
+
+            RuleFor(x => x.Measurand.Amount)
+                .GreaterThan(0);
         }
     }
 }

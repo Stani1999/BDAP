@@ -26,6 +26,11 @@ namespace Warehouse.Services.Application
             return await _categories.Find(c => c.Group == group).ToListAsync();
         }
 
+        public async Task<List<Category>> GetAllCategoriesAsync()
+        {
+            return await _categories.Find(_ => true).ToListAsync();
+        }
+
         public async Task<Category> GetCategoryByIdAsync(string id)
         {
             return await _categories.Find(c => c.Id == id).FirstOrDefaultAsync();

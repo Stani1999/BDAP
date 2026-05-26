@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Drawing.Printing;
 using System.Linq;
 using System.Threading.Tasks;
 using Warehouse.Models;
@@ -62,6 +61,22 @@ namespace Warehouse.ViewModels
         {
             CurrentPage = 0;
             _ = LoadPageAsync();
+        }
+
+        [RelayCommand]
+        private async Task RefreshAsync()
+        {
+            await LoadPageAsync();
+        }
+
+        [RelayCommand]
+        private async Task ClearAsync()
+        {
+            SearchQuery = string.Empty;
+            CategorySelector.SelectedGroup = "-- Wszystkie --";
+            CategorySelector.SelectedCategory = null;
+            CurrentPage = 0;
+            await LoadPageAsync();
         }
 
         [RelayCommand]

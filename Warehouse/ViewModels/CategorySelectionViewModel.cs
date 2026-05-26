@@ -53,7 +53,12 @@ namespace Warehouse.ViewModels
         async partial void OnSelectedGroupChanged(string value)
         {
             ClearErrors(nameof(SelectedGroup));
-            if (value == "-- Wszystkie --" || string.IsNullOrWhiteSpace(value))
+
+            if (value == "-- Wszystkie --")
+            {
+                await LoadAllCategoriesAsync();
+            }
+            else if (string.IsNullOrWhiteSpace(value) || value == "-- Wybierz Grupę --")
             {
                 Categories.Clear();
                 SelectedCategory = null;
@@ -63,6 +68,17 @@ namespace Warehouse.ViewModels
                 await LoadCategoriesForGroupAsync(value);
             }
             SelectionChanged?.Invoke();
+        }
+
+        private async Task LoadAllCategoriesAsync()
+        {
+            Categories.Clear();
+            SelectedCategory = null;
+            var allCats = await _categoryService.GetAllCategoriesAsync();
+            foreach (var cat in allCats)
+            {
+                Categories.Add(cat);
+            }
         }
 
         partial void OnSelectedCategoryChanged(Category? value)
