@@ -42,19 +42,19 @@ namespace Warehouse.ViewModels
         {
             var groups = await _categoryService.GetAllGroupsAsync();
             Groups.Clear();
-            Groups.Add("-- Wszystkie --");
+            Groups.Add("-- Wszystkie Grupy --");
             foreach (var group in groups)
             {
                 Groups.Add(group);
             }
-            SelectedGroup = "-- Wszystkie --";
+            SelectedGroup = "-- Wszystkie Grupy --";
         }
 
         async partial void OnSelectedGroupChanged(string value)
         {
             ClearErrors(nameof(SelectedGroup));
 
-            if (value == "-- Wszystkie --")
+            if (value == "-- Wszystkie Grupy --")
             {
                 await LoadAllCategoriesAsync();
             }
@@ -73,12 +73,17 @@ namespace Warehouse.ViewModels
         private async Task LoadAllCategoriesAsync()
         {
             Categories.Clear();
-            SelectedCategory = null;
+
+            var allCategory = new Category { Id = string.Empty, Name = "-- Wszystkie Kategorie --", Group = "-- Wszystkie --" };
+            Categories.Add(allCategory);
+
             var allCats = await _categoryService.GetAllCategoriesAsync();
             foreach (var cat in allCats)
             {
                 Categories.Add(cat);
             }
+
+            SelectedCategory = allCategory;
         }
 
         partial void OnSelectedCategoryChanged(Category? value)
@@ -90,15 +95,23 @@ namespace Warehouse.ViewModels
         public async Task LoadCategoriesForGroupAsync(string group)
         {
             Categories.Clear();
-            SelectedCategory = null;
 
-            if (string.IsNullOrWhiteSpace(group) || group == "-- Wybierz Grupę --" || group == "-- Wszystkie --") return;
+            if (string.IsNullOrWhiteSpace(group) || group == "-- Wybierz Grupę --" || group == "-- Wszystkie grupy --")
+            {
+                SelectedCategory = null;
+                return;
+            }
+
+            var allCategory = new Category { Id = string.Empty, Name = "-- Wszystkie Kategorie --", Group = group };
+            Categories.Add(allCategory);
 
             var cats = await _categoryService.GetCategoriesByGroupAsync(group);
             foreach (var cat in cats)
             {
                 Categories.Add(cat);
             }
+
+            SelectedCategory = allCategory;
         }
 
         public IEnumerable GetErrors(string? propertyName)

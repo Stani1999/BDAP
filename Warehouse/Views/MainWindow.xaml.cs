@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Warehouse.ViewModels;
 
@@ -6,30 +7,18 @@ namespace Warehouse.Views
 {
     public partial class MainWindow : Window
     {
-        public MainWindow(MainViewModel viewModel)
+        private readonly IServiceProvider _serviceProvider;
+
+        public MainWindow(MainViewModel viewModel, IServiceProvider serviceProvider)
         {
             InitializeComponent();
             DataContext = viewModel;
-        }
-
-        private void AddProduct_Click(object sender, RoutedEventArgs e)
-        {
-            var window = App.Current.Services.GetRequiredService<ProductDetailsWindow>();
-            if (window.DataContext is ProductDetailsViewModel vm)
-            {
-                _ = vm.InitializeAsync();
-            }
-            window.ShowDialog();
-
-            if (DataContext is MainViewModel mainVm)
-            {
-                _ = mainVm.LoadPageAsync();
-            }
+            _serviceProvider = serviceProvider;
         }
 
         private void OpenReports_Click(object sender, RoutedEventArgs e)
         {
-            var window = App.Current.Services.GetRequiredService<ReportWindow>();
+            var window = _serviceProvider.GetRequiredService<ReportWindow>();
             if (window.DataContext is ReportViewModel vm)
             {
                 _ = vm.InitializeAsync();
@@ -37,7 +26,7 @@ namespace Warehouse.Views
             window.ShowDialog();
         }
 
-        private void PaginationControl_Loaded(object sender, RoutedEventArgs e)
+        private void ProductListControl_Loaded()
         {
 
         }

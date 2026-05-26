@@ -16,29 +16,35 @@
                   VirtualizingStackPanel.VirtualizationMode="Recycling"
                   EnableRowVirtualization="True"
                   CanUserSortColumns="True"
-                  MouseDoubleClick="DataGrid_MouseDoubleClick">
+                  MouseDoubleClick="DataGrid_MouseDoubleClick"
+                  ScrollViewer.VerticalScrollBarVisibility="Visible"
+                  ScrollViewer.HorizontalScrollBarVisibility="Visible"
+                  Margin="0,0,15,0">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Kod" Binding="{Binding Barcode}" Width="100" />
-                <DataGridTextColumn Header="Nazwa" Binding="{Binding Name}" Width="150" />
-                <DataGridTextColumn Header="Miara" Binding="{Binding Measurand.Amount}" Width="80" />
-                <DataGridTextColumn Header="Jednostka" Binding="{Binding Measurand.Unit}" Width="80" />
-                <DataGridTextColumn Header="Opis" Binding="{Binding Description}" Width="*" />
-                <DataGridTextColumn Header="Stan" Binding="{Binding Quantity}" Width="70" />
-                <DataGridTextColumn Header="Cena" Binding="{Binding Price.Amount}" Width="70" />
-                <DataGridTextColumn Header="Waluta" Binding="{Binding Price.Currency}" Width="70" />
+                <DataGridTextColumn Header="Kod" Binding="{Binding Barcode}" Width="1.5*" />
+                <DataGridTextColumn Header="Nazwa" Binding="{Binding Name}" Width="2.5*" />
+                <DataGridTextColumn Header="Miara" Binding="{Binding Measurand.Amount}" Width="1*" />
+                <DataGridTextColumn Header="Jednostka" Binding="{Binding Measurand.Unit}" Width="1*" />
+                <DataGridTextColumn Header="Opis" Binding="{Binding Description}" Width="3*" />
+                <DataGridTextColumn Header="Stan" Binding="{Binding Quantity}" Width="1*" />
+                <DataGridTextColumn Header="Cena" Binding="{Binding Price.Amount}" Width="1*" />
+                <DataGridTextColumn Header="Waluta" Binding="{Binding Price.Currency}" Width="1*" />
             </DataGrid.Columns>
         </DataGrid>
 
-        <StackPanel Grid.Column="1" Margin="20,0,0,0">
-            <TextBlock Text="Pogląd Produktu" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" HorizontalAlignment="Center"/>
-            <Border BorderBrush="#DDDDDD" BorderThickness="1" Background="White" Height="250" Margin="0,0,0,20" CornerRadius="4">
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Text="Pogląd Produktu" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" HorizontalAlignment="Center"/>
+            <Border Grid.Row="1" BorderBrush="#DDDDDD" BorderThickness="1" Background="White" Margin="0,0,0,20" CornerRadius="4">
                 <Image Source="{Binding SelectedProduct.ImageData, Converter={StaticResource ByteArrayToImageConverter}}" Stretch="Uniform" Margin="10"/>
             </Border>
 
-            <TextBlock Text="Etykieta" FontWeight="Bold" FontSize="16" Margin="0,0,0,10" HorizontalAlignment="Center"/>
-            <Border BorderBrush="#DDDDDD" BorderThickness="1" Background="White" Height="250" CornerRadius="4">
-                <Image Source="{Binding SelectedProduct.LabelImageData, Converter={StaticResource ByteArrayToImageConverter}}" Stretch="Uniform" Margin="10"/>
-            </Border>
-        </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

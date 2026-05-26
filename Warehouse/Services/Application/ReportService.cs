@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using MongoDB.Bson;
 using MongoDB.Driver;
 using Warehouse.Models;
 using Warehouse.Services.Infrastructure;
 
 namespace Warehouse.Services.Application
 {
-    /// <summary>
-    /// Executes complex analytical queries utilizing the MongoDB Aggregation Framework.
-    /// Offloads heavy data processing from the application layer to the database engine.
-    /// </summary>
     public class ReportService
     {
         private readonly IMongoCollection<InventoryTransaction> _transactions;
@@ -21,41 +17,38 @@ namespace Warehouse.Services.Application
             _transactions = mongoService.GetCollection<InventoryTransaction>("InventoryTransaction");
         }
 
-        public async Task<List<BsonDocument>> GetStockTrendsAsync(DateTime from, DateTime to)
+        public async Task<List<InventoryReportRow>> GetMonthlyReportAsync(int year, int month)
         {
-            var match = Builders<InventoryTransaction>.Filter.And(
-                Builders<InventoryTransaction>.Filter.Gte(t => t.Timestamp, from),
-                Builders<InventoryTransaction>.Filter.Lte(t => t.Timestamp, to)
+            var startDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var endDate = startDate.AddMonths(1);
+
+            var filter = Builders<InventoryTransaction>.Filter.And(
+                Builders<InventoryTransaction>.Filter.Gte(x => x.Timestamp, startDate),
+                Builders<InventoryTransaction>.Filter.Lt(x => x.Timestamp, endDate)
             );
 
-            return await _transactions.Aggregate()
-                .Match(match)
-                .Group(
-                    new BsonDocument
-                    {
-                        { "_id", new BsonDocument("$dateToString", new BsonDocument { { "format", "%Y-%m-%d" }, { "date", "$Timestamp" } }) },
-                        { "DailyMovement", new BsonDocument("$sum", "$QuantityChanged") }
-                    }
-                )
-                .Sort(new BsonDocument("_id", 1))
-                .ToListAsync();
-        }
+            var transactions = await _transactions.Find(filter).ToListAsync();
 
-        public async Task<List<BsonDocument>> GetTopMoversAsync(int limit)
-        {
-            return await _transactions.Aggregate()
-                .Group(
-                    new BsonDocument
-                    {
-                        { "_id", "$ProductId" },
-                        { "TotalVolume", new BsonDocument("$sum", new BsonDocument("$abs", "$QuantityChanged")) }
-                    }
-                )
-                .Sort(new BsonDocument("TotalVolume", -1))
-                .Limit(limit)
-                .Lookup<BsonDocument, BsonDocument>("Product", "_id", "_id", "ProductDetails")
-                .Unwind<BsonDocument>("ProductDetails")
-                .ToListAsync();
+            foreach (var t in transactions)
+            {
+                if (string.IsNullOrWhiteSpace(t.ProductName))
+                {
+                    t.ProductName = "Nieznany Produkt (Brak Nazwy w Logu)";
+                }
+            }
+
+            var report = transactions
+                .GroupBy(t => t.ProductName)
+                .Select(g => new InventoryReportRow
+                {
+                    ProductName = g.Key,
+                    Received = g.Where(t => t.TransactionType == "IN").Sum(t => t.QuantityChanged),
+                    Issued = g.Where(t => t.TransactionType == "OUT").Sum(t => t.QuantityChanged)
+                })
+                .OrderBy(r => r.ProductName)
+                .ToList();
+
+            return report;
         }
     }
 }

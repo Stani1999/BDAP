@@ -9,12 +9,12 @@ namespace Warehouse.Validators
         {
             RuleFor(x => x.Name)
                 .NotEmpty()
-                .MaximumLength(50);
+                .MaximumLength(100);
 
             RuleFor(x => x.Barcode)
                 .NotEmpty()
                 .MinimumLength(3)
-                .MaximumLength(50);
+                .MaximumLength(20);
 
             RuleFor(x => x.CategoryId)
                 .NotEmpty();

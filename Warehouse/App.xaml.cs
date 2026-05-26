@@ -41,7 +41,6 @@ namespace Warehouse
             services.AddTransient<ReportViewModel>();
 
             services.AddTransient<MainWindow>();
-            services.AddTransient<ProductDetailsWindow>();
             services.AddTransient<ReportWindow>();
 
             return services.BuildServiceProvider();

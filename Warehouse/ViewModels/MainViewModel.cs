@@ -16,6 +16,7 @@ namespace Warehouse.ViewModels
         private readonly ReportService _reportService;
 
         public CategorySelectionViewModel CategorySelector { get; }
+        public ProductDetailsViewModel DetailsViewModel { get; }
 
         [ObservableProperty]
         private string _searchQuery = string.Empty;
@@ -38,16 +39,47 @@ namespace Warehouse.ViewModels
         [ObservableProperty]
         private ObservableCollection<int> _pageSizes = new(new[] { 5, 10, 15, 25, 50 });
 
-        public MainViewModel(ProductService productService, CategoryService categoryService, ReportService reportService, CategorySelectionViewModel categorySelector)
+        [ObservableProperty]
+        private bool _isListVisible = true;
+
+        [ObservableProperty]
+        private bool _isDetailsVisible = false;
+
+        public MainViewModel(ProductService productService, CategoryService categoryService, ReportService reportService, CategorySelectionViewModel categorySelector, ProductDetailsViewModel detailsViewModel)
         {
             _productService = productService;
             _categoryService = categoryService;
             _reportService = reportService;
             CategorySelector = categorySelector;
+            DetailsViewModel = detailsViewModel;
 
+            DetailsViewModel.OnRequestClose += HideDetails;
             CategorySelector.SelectionChanged += async () => { CurrentPage = 0; await LoadPageAsync(); };
 
             _ = CategorySelector.InitializeAsync();
+            _ = LoadPageAsync();
+        }
+
+        [RelayCommand]
+        public async Task ShowAddDetailsAsync()
+        {
+            await DetailsViewModel.InitializeNewAsync();
+            IsListVisible = false;
+            IsDetailsVisible = true;
+        }
+
+        [RelayCommand]
+        public async Task ShowEditDetailsAsync(Product product)
+        {
+            await DetailsViewModel.SetProductAsync(product);
+            IsListVisible = false;
+            IsDetailsVisible = true;
+        }
+
+        private void HideDetails()
+        {
+            IsDetailsVisible = false;
+            IsListVisible = true;
             _ = LoadPageAsync();
         }
 

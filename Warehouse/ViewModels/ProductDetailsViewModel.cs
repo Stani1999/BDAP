@@ -28,6 +28,8 @@ namespace Warehouse.ViewModels
 
         public CategorySelectionViewModel CategorySelector { get; }
 
+        private int _originalQuantity;
+
         [ObservableProperty]
         private Product _currentProduct;
 
@@ -81,6 +83,7 @@ namespace Warehouse.ViewModels
 
         public bool HasErrors => _errors.Any();
         public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
+        public event Action? OnRequestClose;
 
         public bool CanDelete => !IsNewProduct;
 
@@ -107,35 +110,53 @@ namespace Warehouse.ViewModels
             Units = new ObservableCollection<Unit>(Enum.GetValues(typeof(Unit)).Cast<Unit>());
         }
 
-        public async Task InitializeAsync()
+        [RelayCommand]
+        private void ReturnToList() => OnRequestClose?.Invoke();
+
+        public async Task InitializeNewAsync()
         {
-            await CategorySelector.InitializeAsync();
+            CurrentProduct = new Product();
+            IsNewProduct = true;
+            _originalQuantity = 0;
+            ProductBarcode = string.Empty;
+            ProductName = string.Empty;
+            ProductDescription = string.Empty;
+            ProductQuantity = 0;
+            ProductPriceAmount = 0m;
+            MeasurandAmount = 0m;
+            ExtractedText = string.Empty;
+            _rawImageData = null;
+            _rawLabelImageData = null;
+            ProductImageSource = null;
+            ProductLabelImageSource = null;
+            CategorySelector.SelectedGroup = "-- Wszystkie Grupy --";
+            CategorySelector.SelectedCategory = null;
+            ClearErrors();
             CategorySelector.ClearAllErrors();
+            await CategorySelector.InitializeAsync();
         }
 
         public async Task SetProductAsync(Product product)
         {
             CurrentProduct = product;
             IsNewProduct = false;
-
+            _originalQuantity = product.Quantity;
             ProductBarcode = product.Barcode;
             ProductName = product.Name;
             ProductDescription = product.Description;
             ProductQuantity = product.Quantity;
             ProductPriceAmount = product.Price.Amount;
             SelectedCurrency = product.Price.Currency;
-
             MeasurandAmount = product.Measurand.Amount;
             SelectedUnit = product.Measurand.Unit;
-
             ExtractedText = product.ExtractedLabelText;
             _rawImageData = product.ImageData;
             _rawLabelImageData = product.LabelImageData;
-
             ProductImageSource = ByteArrayToImage(_rawImageData);
             ProductLabelImageSource = ByteArrayToImage(_rawLabelImageData);
 
-            await InitializeAsync();
+            await CategorySelector.InitializeAsync();
+            CategorySelector.ClearAllErrors();
 
             if (!string.IsNullOrEmpty(product.CategoryId))
             {
@@ -204,82 +225,130 @@ namespace Warehouse.ViewModels
 
         private async Task<bool> SaveCoreAsync()
         {
-            var quantityDifference = ProductQuantity - CurrentProduct.Quantity;
+            var quantityDifference = ProductQuantity - _originalQuantity;
 
             CurrentProduct.Barcode = ProductBarcode;
             CurrentProduct.Name = ProductName;
             CurrentProduct.Description = ProductDescription;
-            CurrentProduct.Quantity = ProductQuantity;
+            CurrentProduct.Quantity = _originalQuantity;
             CurrentProduct.Price.Amount = ProductPriceAmount;
             CurrentProduct.Price.Currency = SelectedCurrency;
-
             CurrentProduct.Measurand.Amount = MeasurandAmount;
             CurrentProduct.Measurand.Unit = SelectedUnit;
-
             CurrentProduct.ImageData = _rawImageData;
             CurrentProduct.LabelImageData = _rawLabelImageData;
             CurrentProduct.ExtractedLabelText = ExtractedText;
 
-            if (CategorySelector.SelectedCategory != null)
+            if (CategorySelector.SelectedCategory != null && !string.IsNullOrWhiteSpace(CategorySelector.SelectedCategory.Id))
             {
                 CurrentProduct.CategoryId = CategorySelector.SelectedCategory.Id;
             }
 
+            ClearErrors();
+            CategorySelector.ClearAllErrors();
+
+            bool hasDropdownErrors = false;
+            if (string.IsNullOrWhiteSpace(CategorySelector.SelectedGroup) || CategorySelector.SelectedGroup == "-- Wybierz Grupę --" || CategorySelector.SelectedGroup == "-- Wszystkie --")
+            {
+                CategorySelector.AddError(nameof(CategorySelector.SelectedGroup), "Grupa jest wymagana.");
+                hasDropdownErrors = true;
+            }
+            if (CategorySelector.SelectedCategory == null || string.IsNullOrWhiteSpace(CategorySelector.SelectedCategory.Id))
+            {
+                CategorySelector.AddError(nameof(CategorySelector.SelectedCategory), "Kategoria jest wymagana.");
+                hasDropdownErrors = true;
+            }
+
             var validationResult = await _productValidator.ValidateAsync(CurrentProduct);
-            if (!validationResult.IsValid) return false;
+            if (!validationResult.IsValid || hasDropdownErrors)
+            {
+                foreach (var error in validationResult.Errors)
+                {
+                    string propName = error.PropertyName switch
+                    {
+                        "Barcode" => nameof(ProductBarcode),
+                        "Name" => nameof(ProductName),
+                        "Quantity" => nameof(ProductQuantity),
+                        "Price.Amount" => nameof(ProductPriceAmount),
+                        "Measurand.Amount" => nameof(MeasurandAmount),
+                        _ => error.PropertyName
+                    };
+                    AddError(propName, error.ErrorMessage);
+                }
+                return false;
+            }
 
             if (IsNewProduct)
             {
                 CurrentProduct.Quantity = 0;
                 await _productService.AddProductAsync(CurrentProduct);
-                if (quantityDifference != 0)
+
+                if (ProductQuantity != 0)
                 {
-                    await _inventoryService.LogTransactionAsync(new InventoryTransaction { ProductId = CurrentProduct.Id, TransactionType = quantityDifference > 0 ? "IN" : "OUT", QuantityChanged = quantityDifference, Timestamp = DateTime.UtcNow, UserId = "system" });
+                    await _inventoryService.LogTransactionAsync(new InventoryTransaction
+                    {
+                        ProductId = CurrentProduct.Id,
+                        ProductName = CurrentProduct.Name,
+                        TransactionType = ProductQuantity > 0 ? "IN" : "OUT",
+                        QuantityChanged = ProductQuantity,
+                        Timestamp = DateTime.UtcNow,
+                        UserId = "system"
+                    });
                 }
+
                 IsNewProduct = false;
+                _originalQuantity = ProductQuantity;
+                CurrentProduct.Quantity = ProductQuantity;
             }
             else
             {
                 await _productService.UpdateProductAsync(CurrentProduct);
+
                 if (quantityDifference != 0)
                 {
-                    await _inventoryService.LogTransactionAsync(new InventoryTransaction { ProductId = CurrentProduct.Id, TransactionType = quantityDifference > 0 ? "IN" : "OUT", QuantityChanged = quantityDifference, Timestamp = DateTime.UtcNow, UserId = "system_edit" });
+                    await _inventoryService.LogTransactionAsync(new InventoryTransaction
+                    {
+                        ProductId = CurrentProduct.Id,
+                        ProductName = CurrentProduct.Name,
+                        TransactionType = quantityDifference > 0 ? "IN" : "OUT",
+                        QuantityChanged = Math.Abs(quantityDifference),
+                        Timestamp = DateTime.UtcNow,
+                        UserId = "system_edit"
+                    });
                 }
+
+                _originalQuantity = ProductQuantity;
+                CurrentProduct.Quantity = ProductQuantity;
             }
             return true;
         }
 
         [RelayCommand]
-        private async Task SaveAsync() => await SaveCoreAsync();
+        private async Task SaveAsync()
+        {
+            if (await SaveCoreAsync())
+            {
+                OnRequestClose?.Invoke();
+            }
+        }
 
         [RelayCommand]
         private async Task SaveAndNextAsync()
         {
             if (await SaveCoreAsync())
             {
-                CurrentProduct = new Product();
-                IsNewProduct = true;
-                ProductBarcode = string.Empty;
-                ProductName = string.Empty;
-                ProductDescription = string.Empty;
-                ProductQuantity = 0;
-                ProductPriceAmount = 0m;
-                MeasurandAmount = 0m;
-                ExtractedText = string.Empty;
-                _rawImageData = null;
-                _rawLabelImageData = null;
-                ProductImageSource = null;
-                ProductLabelImageSource = null;
-                CategorySelector.SelectedGroup = "-- Wszystkie --";
-                CategorySelector.SelectedCategory = null;
-                ClearErrors();
+                await InitializeNewAsync();
             }
         }
 
         [RelayCommand]
         private async Task DeleteAsync()
         {
-            if (!IsNewProduct) await _productService.DeleteProductAsync(CurrentProduct.Id);
+            if (!IsNewProduct)
+            {
+                await _productService.DeleteProductAsync(CurrentProduct.Id);
+                OnRequestClose?.Invoke();
+            }
         }
 
         public IEnumerable GetErrors(string? propertyName) => (!_errors.ContainsKey(propertyName ?? "")) ? null! : _errors[propertyName ?? ""];
