@@ -1,6 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing.Printing;
+using System.Linq;
 using System.Threading.Tasks;
 using Warehouse.Models;
 using Warehouse.Services.Application;
@@ -10,6 +13,7 @@ namespace Warehouse.ViewModels
     public partial class MainViewModel : ObservableObject
     {
         private readonly ProductService _productService;
+        private readonly CategoryService _categoryService;
         private readonly ReportService _reportService;
 
         public CategorySelectionViewModel CategorySelector { get; }
@@ -29,43 +33,53 @@ namespace Warehouse.ViewModels
         [ObservableProperty]
         private int _currentPage = 0;
 
-        private const int PageSize = 50;
+        [ObservableProperty]
+        private int _pageSize = 50;
 
-        public MainViewModel(ProductService productService, ReportService reportService, CategorySelectionViewModel categorySelector)
+        [ObservableProperty]
+        private ObservableCollection<int> _pageSizes = new(new[] { 5, 10, 15, 25, 50 });
+
+        public MainViewModel(ProductService productService, CategoryService categoryService, ReportService reportService, CategorySelectionViewModel categorySelector)
         {
             _productService = productService;
+            _categoryService = categoryService;
             _reportService = reportService;
             CategorySelector = categorySelector;
 
+            CategorySelector.SelectionChanged += async () => { CurrentPage = 0; await LoadPageAsync(); };
+
             _ = CategorySelector.InitializeAsync();
+            _ = LoadPageAsync();
         }
 
         partial void OnSearchQueryChanged(string value)
         {
-            _ = SearchAsync();
+            CurrentPage = 0;
+            _ = LoadPageAsync();
         }
 
-        [RelayCommand]
-        private async Task SearchAsync()
+        partial void OnPageSizeChanged(int value)
         {
-            if (string.IsNullOrWhiteSpace(SearchQuery))
-            {
-                await LoadPageAsync();
-                return;
-            }
-
-            IsLoading = true;
-            var results = await _productService.SearchByBarcodeOrNameAsync(SearchQuery);
-            Products = new ObservableCollection<Product>(results);
-            IsLoading = false;
+            CurrentPage = 0;
+            _ = LoadPageAsync();
         }
 
         [RelayCommand]
-        private async Task LoadPageAsync()
+        public async Task LoadPageAsync()
         {
             IsLoading = true;
             var skip = CurrentPage * PageSize;
-            var results = await _productService.GetProductsPaginatedAsync(skip, PageSize);
+
+            string catId = CategorySelector.SelectedCategory?.Id ?? string.Empty;
+            var groupCategoryIds = new List<string>();
+
+            if (string.IsNullOrEmpty(catId) && !string.IsNullOrEmpty(CategorySelector.SelectedGroup) && CategorySelector.SelectedGroup != "-- Wybierz Grupę --" && CategorySelector.SelectedGroup != "-- Wszystkie --")
+            {
+                var cats = await _categoryService.GetCategoriesByGroupAsync(CategorySelector.SelectedGroup);
+                groupCategoryIds = cats.Select(c => c.Id).ToList();
+            }
+
+            var results = await _productService.GetFilteredProductsAsync(SearchQuery, catId, groupCategoryIds, skip, PageSize);
             Products = new ObservableCollection<Product>(results);
             IsLoading = false;
         }

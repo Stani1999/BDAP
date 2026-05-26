@@ -10,9 +10,6 @@ using Warehouse.Views;
 
 namespace Warehouse
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
         public new static App Current => (App)Application.Current;
@@ -33,15 +30,19 @@ namespace Warehouse
             services.AddTransient<ProductService>();
             services.AddTransient<InventoryService>();
             services.AddTransient<ReportService>();
+            services.AddTransient<OcrService>();
+            services.AddTransient<TranslationService>();
 
             services.AddValidatorsFromAssemblyContaining<ProductValidator>();
 
             services.AddTransient<CategorySelectionViewModel>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<ProductDetailsViewModel>();
+            services.AddTransient<ReportViewModel>();
 
             services.AddTransient<MainWindow>();
             services.AddTransient<ProductDetailsWindow>();
+            services.AddTransient<ReportWindow>();
 
             return services.BuildServiceProvider();
         }

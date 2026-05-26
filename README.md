@@ -51,13 +51,14 @@ E.g. Dependencies >  Packages > MongoDB.Driver > `SharpCompress` (Warning icon)
 
 ### II.2. Installed Packages and Versions
 
-**Package Name**                                | **Version**
-:---                                            | :---
-CommunityToolkit.Mvvm                           | 8.4.2
-Microsoft.Extensions.DependencyInjection        | 10.0.8
-MongoDB.Driver                                  | 3.8.1
-SharpCompress                                   | 0.48.1
-FluentValidation.DependencyInjectionExtensions  | 12.1.1
+**Package Name**                                | **Version** | Description
+:---                                            | :---        | :--- 
+CommunityToolkit.Mvvm                           | 8.4.2       | MVVM utilities (ObservableObject, RelayCommand, etc.)
+Microsoft.Extensions.DependencyInjection        | 10.0.8      | Built-in DI container for service registration and resolution
+MongoDB.Driver                                  | 3.8.1       | Official MongoDB .NET driver for database interactions
+SharpCompress                                   | 0.48.1      | Dependency of MongoDB.Driver for handling compressed data streams
+FluentValidation.DependencyInjectionExtensions  | 12.1.1      | Integration of FluentValidation with Microsoft.Extensions.DependencyInjection for easy validator registration
+Teseract                                        | 5.2.0       | OCR library for text extraction from images (if needed in future expansions)
 
 ### II.3. Big Data
 

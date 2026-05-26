@@ -5,22 +5,20 @@ using Warehouse.Models.Types;
 
 namespace Warehouse.Models
 {
-        /// <summary>
-    /// Represents the main product aggregate in the catalog. 
-    /// The Quantity property serves as a materialized view (cache) for fast UI rendering.
-    /// </summary>
+    [BsonIgnoreExtraElements]
     public class Product
     {
         [BsonId]
         public ObjectId Id { get; set; }
+        public string Barcode { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
-        [BsonRepresentation(BsonType.String)]
+        public string Description { get; set; } = string.Empty;
         public string CategoryId { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public Price Price { get; set; } = new();
         public Unit Unit { get; set; }
-        public List<ProductTag> Tags { get; set; } = new();
-        public string ImagePath { get; set; } = string.Empty;
-        public string LabelImagePath { get; set; } = string.Empty;
+        public byte[]? ImageData { get; set; }
+        public byte[]? LabelImageData { get; set; }
+        public string ExtractedLabelText { get; set; } = string.Empty;
     }
 }

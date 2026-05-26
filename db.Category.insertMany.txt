@@ -161,7 +161,7 @@ db.Category.insertMany([
   { Id: "read_03", Group: "Pizze i dania gotowe", Name: "Dania przygotowywane na gorąco" },
   { Id: "read_04", Group: "Pizze i dania gotowe", Name: "Dania przygotowywane na zimno" },
 
-  { Id: "dess_01", Group: "Desery i jogurty", Name: "ifidobakterie" },
+  { Id: "dess_01", Group: "Desery i jogurty", Name: "Bifidobakteri" },
   { Id: "dess_02", Group: "Desery i jogurty", Name: "Flan i budyń" },
   { Id: "dess_03", Group: "Desery i jogurty", Name: "Żelatyna i inne desery" },
   { Id: "dess_04", Group: "Desery i jogurty", Name: "Desery sojowe" },
@@ -169,7 +169,7 @@ db.Category.insertMany([
   { Id: "dess_06", Group: "Desery i jogurty", Name: "Jogurty greckie" },
   { Id: "dess_07", Group: "Desery i jogurty", Name: "Jogurty płynne" },
   { Id: "dess_08", Group: "Desery i jogurty", Name: "Jogurty naturalne i smakowe" },
-  { Id: "dess_09", Group: "Desery i jogurty", Name: "Jogurty i desery dla dzieci" }
+  { Id: "dess_09", Group: "Desery i jogurty", Name: "Jogurty i desery dla dzieci" },
 
   { Id: "juice_01", Group: "Soki", Name: "Mieszane owoce" },
   { Id: "juice_02", Group: "Soki", Name: "Brzoskwinia i ananas" },

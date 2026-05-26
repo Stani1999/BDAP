@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -7,10 +8,6 @@ using Warehouse.Services.Infrastructure;
 
 namespace Warehouse.Services.Application
 {
-    /// <summary>
-    /// Application service responsible for Product Information Management (PIM).
-    /// Handles CRUD operations, paginated retrieval, and fast barcode/name search capabilities.
-    /// </summary>
     public class ProductService
     {
         private readonly IMongoCollection<Product> _products;
@@ -20,27 +17,36 @@ namespace Warehouse.Services.Application
             _products = mongoService.GetCollection<Product>("Product");
         }
 
-        public async Task<List<Product>> GetProductsPaginatedAsync(int skip, int limit)
+        public async Task<List<Product>> GetFilteredProductsAsync(string searchQuery, string categoryId, List<string> categoryIdsFromGroup, int skip, int limit)
         {
-            return await _products.Find(_ => true)
+            var filters = new List<FilterDefinition<Product>>();
+
+            if (!string.IsNullOrWhiteSpace(searchQuery))
+            {
+                var safeQuery = Regex.Escape(searchQuery);
+                var regex = new BsonRegularExpression(safeQuery, "i");
+                filters.Add(Builders<Product>.Filter.Or(
+                    Builders<Product>.Filter.Regex(p => p.Name, regex),
+                    Builders<Product>.Filter.Regex(p => p.Barcode, regex),
+                    Builders<Product>.Filter.Regex(p => p.Description, regex)
+                ));
+            }
+
+            if (!string.IsNullOrWhiteSpace(categoryId))
+            {
+                filters.Add(Builders<Product>.Filter.Eq(p => p.CategoryId, categoryId));
+            }
+            else if (categoryIdsFromGroup != null && categoryIdsFromGroup.Count > 0)
+            {
+                filters.Add(Builders<Product>.Filter.In(p => p.CategoryId, categoryIdsFromGroup));
+            }
+
+            var combinedFilter = filters.Count > 0 ? Builders<Product>.Filter.And(filters) : Builders<Product>.Filter.Empty;
+
+            return await _products.Find(combinedFilter)
                                   .Skip(skip)
                                   .Limit(limit)
                                   .ToListAsync();
-        }
-
-        public async Task<List<Product>> SearchByBarcodeOrNameAsync(string query)
-        {
-            if (ObjectId.TryParse(query, out var objectId))
-            {
-                var exactMatch = await _products.Find(p => p.Id == objectId).ToListAsync();
-                if (exactMatch.Count > 0)
-                {
-                    return exactMatch;
-                }
-            }
-
-            var filter = Builders<Product>.Filter.Regex(p => p.Name, new BsonRegularExpression(query, "i"));
-            return await _products.Find(filter).Limit(50).ToListAsync();
         }
 
         public async Task AddProductAsync(Product product)

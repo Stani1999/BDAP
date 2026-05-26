@@ -6,9 +6,6 @@ namespace Warehouse.Views
 {
     public partial class MainWindow : Window
     {
-        /// <summary>
-        /// Interaction logic for MainWindow.xaml
-        /// </summary>
         public MainWindow(MainViewModel viewModel)
         {
             InitializeComponent();
@@ -19,6 +16,16 @@ namespace Warehouse.Views
         {
             var window = App.Current.Services.GetRequiredService<ProductDetailsWindow>();
             if (window.DataContext is ProductDetailsViewModel vm)
+            {
+                _ = vm.InitializeAsync();
+            }
+            window.ShowDialog();
+        }
+
+        private void OpenReports_Click(object sender, RoutedEventArgs e)
+        {
+            var window = App.Current.Services.GetRequiredService<ReportWindow>();
+            if (window.DataContext is ReportViewModel vm)
             {
                 _ = vm.InitializeAsync();
             }
