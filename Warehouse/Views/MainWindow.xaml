@@ -23,7 +23,7 @@
             <Grid MinHeight="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
+                    <RowDefinition Height="750" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
@@ -56,16 +56,27 @@
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="300" />
                     </Grid.ColumnDefinitions>
-                    <uc:ProductListControl Grid.Column="0" Margin="0,0,15,0" />
-                    <uc:ProductPreviewControl Grid.Column="1" />
+
+                    <uc:ProductListControl Grid.Column="0" Margin="0,0,15,0" MaxHeight="750"/>
+
+                    <Grid Grid.Column="1">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <uc:ProductPreviewControl Grid.Row="0" Margin="0,0,0,20"/>
+                        <uc:ProductDescriptionControl Grid.Row="1"/>
+                    </Grid>
                 </Grid>
 
                 <uc:PaginationControl Grid.Row="2" />
             </Grid>
         </ScrollViewer>
-
+        
         <Grid Visibility="{Binding IsDetailsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <views:ProductDetailsView DataContext="{Binding DetailsViewModel}" />
         </Grid>
+
     </Grid>
 </Window>
