@@ -32,7 +32,11 @@ namespace Warehouse.Services.Application
                 ));
             }
 
-            if (!string.IsNullOrWhiteSpace(categoryId))
+            bool isAllCategoriesOption = categoryId == "-- Wszystkie Kategorie --" ||
+                                         categoryId == "-- Wszystkie Grupy --" ||
+                                         categoryId == "-- Wszystkie --";
+
+            if (!string.IsNullOrWhiteSpace(categoryId) && !isAllCategoriesOption)
             {
                 filters.Add(Builders<Product>.Filter.Eq(p => p.CategoryId, categoryId));
             }
@@ -64,6 +68,24 @@ namespace Warehouse.Services.Application
         {
             var filter = Builders<Product>.Filter.Eq(p => p.Id, id);
             await _products.DeleteOneAsync(filter);
+        }
+
+        public async Task<bool> IsBarcodeUniqueAsync(string barcode, ObjectId currentProductId)
+        {
+            if (string.IsNullOrWhiteSpace(barcode))
+            {
+                return true;
+            }
+
+            var filter = Builders<Product>.Filter.Eq(p => p.Barcode, barcode);
+
+            if (currentProductId != ObjectId.Empty)
+            {
+                filter &= Builders<Product>.Filter.Ne(p => p.Id, currentProductId);
+            }
+
+            var count = await _products.CountDocumentsAsync(filter);
+            return count == 0;
         }
     }
 }

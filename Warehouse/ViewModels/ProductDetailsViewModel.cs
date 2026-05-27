@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using Warehouse.Models;
 using Warehouse.Models.Types;
 using Warehouse.Services.Application;
+using Warehouse.Validators;
 
 namespace Warehouse.ViewModels
 {
@@ -25,6 +26,7 @@ namespace Warehouse.ViewModels
         private readonly OcrService _ocrService;
         private readonly TranslationService _translationService;
         private readonly IValidator<Product> _productValidator;
+        private readonly EANUniqValidator _eanUniqValidator;
 
         public CategorySelectionViewModel CategorySelector { get; }
 
@@ -94,7 +96,8 @@ namespace Warehouse.ViewModels
             OcrService ocrService,
             TranslationService translationService,
             CategorySelectionViewModel categorySelector,
-            IValidator<Product> productValidator)
+            IValidator<Product> productValidator,
+            EANUniqValidator eanUniqValidator)
         {
             _productService = productService;
             _inventoryService = inventoryService;
@@ -103,6 +106,7 @@ namespace Warehouse.ViewModels
             _translationService = translationService;
             CategorySelector = categorySelector;
             _productValidator = productValidator;
+            _eanUniqValidator = eanUniqValidator;
 
             CurrentProduct = new Product();
             IsNewProduct = true;
@@ -129,7 +133,7 @@ namespace Warehouse.ViewModels
             _rawLabelImageData = null;
             ProductImageSource = null;
             ProductLabelImageSource = null;
-            CategorySelector.SelectedGroup = "-- Wszystkie Grupy --";
+            CategorySelector.SelectedGroup = "-- Wszystkie --";
             CategorySelector.SelectedCategory = null;
             ClearErrors();
             CategorySelector.ClearAllErrors();
@@ -247,20 +251,31 @@ namespace Warehouse.ViewModels
             ClearErrors();
             CategorySelector.ClearAllErrors();
 
-            bool hasDropdownErrors = false;
+            bool hasValidationErrors = false;
+
             if (string.IsNullOrWhiteSpace(CategorySelector.SelectedGroup) || CategorySelector.SelectedGroup == "-- Wybierz Grupę --" || CategorySelector.SelectedGroup == "-- Wszystkie --")
             {
                 CategorySelector.AddError(nameof(CategorySelector.SelectedGroup), "Grupa jest wymagana.");
-                hasDropdownErrors = true;
+                hasValidationErrors = true;
             }
             if (CategorySelector.SelectedCategory == null || string.IsNullOrWhiteSpace(CategorySelector.SelectedCategory.Id))
             {
                 CategorySelector.AddError(nameof(CategorySelector.SelectedCategory), "Kategoria jest wymagana.");
-                hasDropdownErrors = true;
+                hasValidationErrors = true;
+            }
+
+            var eanValidationResult = await _eanUniqValidator.ValidateAsync(CurrentProduct);
+            if (!eanValidationResult.IsValid)
+            {
+                foreach (var error in eanValidationResult.Errors)
+                {
+                    AddError(nameof(ProductBarcode), error.ErrorMessage);
+                }
+                hasValidationErrors = true;
             }
 
             var validationResult = await _productValidator.ValidateAsync(CurrentProduct);
-            if (!validationResult.IsValid || hasDropdownErrors)
+            if (!validationResult.IsValid || hasValidationErrors)
             {
                 foreach (var error in validationResult.Errors)
                 {

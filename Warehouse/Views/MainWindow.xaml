@@ -6,9 +6,12 @@
         Title="Warehouse Management System - Big Data" Height="900" Width="1600"
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized">
-    <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
-        <Grid MinHeight="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
-            <Grid Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+    <Grid>
+
+        <ScrollViewer VerticalScrollBarVisibility="Visible" 
+                      HorizontalScrollBarVisibility="Disabled"
+                      Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid MinHeight="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
@@ -42,10 +45,11 @@
                 <uc:ProductListControl Grid.Row="1" />
                 <uc:PaginationControl Grid.Row="2" />
             </Grid>
+        </ScrollViewer>
 
-            <Grid Visibility="{Binding IsDetailsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                <views:ProductDetailsView DataContext="{Binding DetailsViewModel}" />
-            </Grid>
+        <Grid Visibility="{Binding IsDetailsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <views:ProductDetailsView DataContext="{Binding DetailsViewModel}" />
         </Grid>
-    </ScrollViewer>
+
+    </Grid>
 </Window>
