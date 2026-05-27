@@ -54,8 +54,8 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="100"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="100"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
@@ -107,10 +107,30 @@
             <TextBlock Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="4" Text="Opis" FontWeight="SemiBold" Margin="0,20,10,4" VerticalAlignment="Bottom"/>
             <TextBlock Grid.Row="7" Grid.Column="4" Grid.ColumnSpan="4" Text="Rozpoznany tekst etykiety" FontWeight="SemiBold" Margin="0,20,10,4" VerticalAlignment="Bottom"/>
 
-            <TextBox Grid.Row="8" Grid.RowSpan="3" Grid.Column="0" Grid.ColumnSpan="4" Text="{Binding ProductDescription, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Height="Auto" MinHeight="300" VerticalAlignment="Stretch" Margin="0,0,10,0"/>
-            <TextBox Grid.Row="8" Grid.RowSpan="3" Grid.Column="4" Grid.ColumnSpan="4" Text="{Binding ExtractedText, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Background="#FAFAFA" Height="Auto" MinHeight="300" VerticalAlignment="Stretch" Margin="0,0,10,0"/>
+            <TextBox Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="4" 
+                     Text="{Binding ProductDescription, UpdateSourceTrigger=PropertyChanged}" 
+                     TextWrapping="Wrap" 
+                     AcceptsReturn="True" 
+                     VerticalScrollBarVisibility="Visible" 
+                     HorizontalScrollBarVisibility="Disabled"
+                     VerticalContentAlignment="Top" 
+                     VerticalAlignment="Stretch" 
+                     MinHeight="300"
+                     Margin="0,0,10,0"/>
 
-            <Grid Grid.Row="2" Grid.RowSpan="9" Grid.Column="8" Grid.ColumnSpan="2">
+            <TextBox Grid.Row="8" Grid.Column="4" Grid.ColumnSpan="4" 
+                     Text="{Binding ExtractedText, UpdateSourceTrigger=PropertyChanged}" 
+                     TextWrapping="Wrap" 
+                     AcceptsReturn="True" 
+                     VerticalScrollBarVisibility="Visible" 
+                     HorizontalScrollBarVisibility="Disabled"
+                     VerticalContentAlignment="Top" 
+                     Background="#FAFAFA" 
+                     VerticalAlignment="Stretch" 
+                     MinHeight="300"
+                     Margin="0,0,10,0"/>
+
+            <Grid Grid.Row="2" Grid.RowSpan="8" Grid.Column="8" Grid.ColumnSpan="2">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
@@ -121,19 +141,19 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border Grid.Row="0" BorderBrush="#DADADA" BorderThickness="1" Background="White" Padding="5" Margin="0,0,0,5" MinHeight="140">
+                <Border MaxHeight="200" Grid.Row="0" BorderBrush="#DADADA" BorderThickness="1" Background="White" Padding="5" Margin="0,0,0,5">
                     <Image Source="{Binding ProductImageSource}" Stretch="Uniform"/>
                 </Border>
-                <Button Grid.Row="1" Content="Wybierz Zdjęcie" Command="{Binding SelectImageCommand}" Margin="0,0,0,25" Height="30" VerticalAlignment="Stretch"/>
+                <Button Grid.Row="1" Content="Wybierz Zdjęcie" Command="{Binding SelectImageCommand}" Margin="0,0,0,10" Height="30"/>
 
-                <TextBlock Grid.Row="2" Text="Zdjęcie Etykiety" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,4"/>
-                <Border Grid.Row="3" BorderBrush="#DADADA" BorderThickness="1" Background="White" Padding="5" Margin="0,0,0,10" MinHeight="140">
+                <TextBlock Grid.Row="2" Text="Zdjęcie Etykiety" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                <Border MaxHeight="200" Grid.Row="3" BorderBrush="#DADADA" BorderThickness="1" Background="White" Padding="5" Margin="0,0,0,10">
                     <Image Source="{Binding ProductLabelImageSource}" Stretch="Uniform"/>
                 </Border>
 
-                <Button Grid.Row="4" Content="Wybierz Etykietę" Command="{Binding SelectLabelImageCommand}" Margin="0,0,0,10" Height="30" VerticalAlignment="Stretch"/>
-                <Button Grid.Row="5" Content="Skanuj etykietę" Command="{Binding ExtractTextFromLabelCommand}" Background="#2196F3" Foreground="White" FontWeight="Bold" Margin="0,0,0,10" Height="30" VerticalAlignment="Stretch"/>
-                <Button Grid.Row="6" Content="Tłumacz na Opis" Command="{Binding TranslateLabelCommand}" Background="#FF9800" Foreground="White" FontWeight="Bold" Height="30" VerticalAlignment="Stretch"/>
+                <Button Grid.Row="4" Content="Wybierz Etykietę" Command="{Binding SelectLabelImageCommand}" Margin="0,0,0,5" Height="30"/>
+                <Button Grid.Row="5" Content="Skanuj etykietę" Command="{Binding ExtractTextFromLabelCommand}" Background="#2196F3" Foreground="White" FontWeight="Bold" Margin="0,0,0,5" Height="30"/>
+                <Button Grid.Row="6" Content="Tłumacz na Opis" Command="{Binding TranslateLabelCommand}" Background="#FF9800" Foreground="White" FontWeight="Bold" Height="30"/>
             </Grid>
 
         </Grid>

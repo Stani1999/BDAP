@@ -206,7 +206,6 @@ Indexes are mandatory to ensure the application scales effectively under Big Dat
 :---                      | :---            | :---
 **Product**               | Text Index      | `Name`
 **Product**               | Single Field    | `CategoryId`
-**Product**               | Multikey Index  | `Tags`
 **InventoryTransaction**  | Compound Index  | `ProductId`, `Timestamp`
 
 ### V.4. MongoDB Aggregation Pipelines
@@ -231,25 +230,15 @@ The User Interface strictly follows a modular, component-based design. Instead o
 
 ### VI.1 **Main Window (Composed View)**
 
-* **SearchBarControl:** An independent component handling text input for product/category/tag searches
-* **ProductListControl:** Displays products using UI Virtualization (`VirtualizingStackPanel`) to handle large datasets efficiently without memory leaks
-* **PaginationControl:** Component containing Next/Previous buttons to navigate through database chunks utilizing `Skip()` and `Limit()`
-* **Action Panel:** Contains buttons to open the "Generate Report" dialog and the "Product Management" routing
+
 
 ### VI.2 **Product Details Window**
 
-* **Data Presentation:** Displays full detailed data fetched from the database for the selected item
-* **Action Buttons:** Triggers for "Add Product", "Edit Product", and "Delete Product"
+
 
 ### VI.3 **Add/Edit Product Window**
 
-* **Product ID:** EAN code from the product
-* **Product Name:** TextBox for entering the product name
-* **Category:** ComboBox for selecting the product category
-* **Subcategory:** ComboBox dynamically populated based on the selected category
-* **Price / Currency:** Text input and dropdown (Default: PLN)
-* **Quantity:** Initial quantity injection (creates an automatic "IN" transaction upon creation)
-* **Tags:** Dynamic CheckBoxes for selecting applicable tags based on the product type
+
 
 ## V. Building of Database (MongoDB)
 
@@ -263,7 +252,6 @@ use WarehouseDB
 
 ```javascript
 db.createCollection("Category")
-db.createCollection("Product")
 ```
 
 ### V.3. Create Category

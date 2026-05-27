@@ -4,7 +4,8 @@
         xmlns:uc="clr-namespace:Warehouse.UserControls"
         xmlns:views="clr-namespace:Warehouse.Views"
         Title="Warehouse Management System - Big Data" Height="900" Width="1600"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        WindowState="Maximized">
     <ScrollViewer VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled">
         <Grid MinHeight="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
             <Grid Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
