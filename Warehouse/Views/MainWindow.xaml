@@ -7,10 +7,19 @@
         WindowStartupLocation="CenterScreen"
         WindowState="Maximized">
     <Grid>
-
-        <ScrollViewer VerticalScrollBarVisibility="Visible" 
-                      HorizontalScrollBarVisibility="Disabled"
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                       Visibility="{Binding IsListVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ScrollViewer.Style>
+                <Style TargetType="ScrollViewer">
+                    <Setter Property="VerticalScrollBarVisibility" Value="Disabled"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsListVisible}" Value="True">
+                            <Setter Property="VerticalScrollBarVisibility" Value="Visible"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </ScrollViewer.Style>
+
             <Grid MinHeight="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -42,7 +51,15 @@
                     </StackPanel>
                 </Grid>
 
-                <uc:ProductListControl Grid.Row="1" />
+                <Grid Grid.Row="1" Margin="10,0,10,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="300" />
+                    </Grid.ColumnDefinitions>
+                    <uc:ProductListControl Grid.Column="0" Margin="0,0,15,0" />
+                    <uc:ProductPreviewControl Grid.Column="1" />
+                </Grid>
+
                 <uc:PaginationControl Grid.Row="2" />
             </Grid>
         </ScrollViewer>
@@ -50,6 +67,5 @@
         <Grid Visibility="{Binding IsDetailsVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
             <views:ProductDetailsView DataContext="{Binding DetailsViewModel}" />
         </Grid>
-
     </Grid>
 </Window>

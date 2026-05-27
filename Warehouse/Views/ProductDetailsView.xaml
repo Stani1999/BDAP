@@ -136,13 +136,13 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Border MaxHeight="267" MinHeight="267"  Grid.Row="0" BorderBrush="#DADADA" BorderThickness="1" Background="White" Padding="5" Margin="0,0,0,5">
+                <Border Height="267"  Grid.Row="0" BorderBrush="#DADADA" BorderThickness="1" Background="White" Padding="5" Margin="0,0,0,5">
                     <Image Source="{Binding ProductImageSource}" Stretch="Uniform"/>
                 </Border>
                 <Button Grid.Row="1" Content="Wybierz Zdjęcie" Command="{Binding SelectImageCommand}" Margin="0,0,0,10" Height="30"/>
 
                 <TextBlock Grid.Row="2" Text="Zdjęcie Etykiety" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,0,0,4"/>
-                <Border MaxHeight="267" MinHeight="267" Grid.Row="3" BorderBrush="#DADADA" BorderThickness="1" Background="White" Padding="5" Margin="0,0,0,10">
+                <Border Height="267" Grid.Row="3" BorderBrush="#DADADA" BorderThickness="1" Background="White" Padding="5" Margin="0,0,0,10">
                     <Image Source="{Binding ProductLabelImageSource}" Stretch="Uniform"/>
                 </Border>
 

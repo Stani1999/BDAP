@@ -25,10 +25,5 @@ namespace Warehouse.Views
             }
             window.ShowDialog();
         }
-
-        private void ProductListControl_Loaded()
-        {
-
-        }
     }
 }
